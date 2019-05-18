@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="EPyTodo Project - Epitech 2022">
+
+    <title>My Task Manager - {{ page_title }} | {% if not session.username %}Not authentified{% else %}{{ session.username }}{% endif %}</title>
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/tasks.png') }}" />
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.9/css/all.css" integrity="sha384-5SOiIsAziJl6AWe0HWRKTXlfcSHKmYV4RBF18PPJ173Kzn7jzMyFuTtk8JA7QQG1" crossorigin="anonymous">
+    <link href="{{ url_for('static', filename='css/glyphicon.css')|autoversion }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css" />
+    <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')|autoversion }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/main.css')|autoversion }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/clockpicker/dist/bootstrap-clockpicker.css')|autoversion }}" rel="stylesheet">
+</head>
+
+<body id="page-top">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
+        <div class="container">
+            <a class="navbar-brand js-scroll-trigger" href="{{ url_for('route_home') }}"><img src="{{ url_for('static', filename='img/tasks.png') }}" style="width: 36px;" />&nbsp;My Task Manager</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ml-auto">
+                    {% if not session.username %}
+                    <li class="nav-item">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-login"><i class="fas fa-check"></i>&nbsp;Login</button>
+                    </li>
+                    <li class="nav-item">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-register"><i class="fas fa-plus"></i>&nbsp;Register</button>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        {% if nb_tasks_late > 0 %}
+                            <a href="{{ url_for(('route_user_tasks')) }}#list-late-task" title="You have {{ nb_tasks_late }} task{% if nb_tasks_late > 1 %}s{% endif %} delayed" nbtasks="{{ nb_tasks_late }}" id="alert-tasks-late" class="badge badge-pill badge-default badge-danger badge-default badge-up" style="transform: translate3d(15px, -10px, 0); padding: 6px;"><i class="fas fa-exclamation-triangle"></i></a>
+                        {% endif %}
+                        <a href="{{ url_for(('route_user_tasks')) }}" class="btn btn-primary"><i class="fas fa-tasks"></i>&nbsp;View my tasks</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" id="user" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-user"></i>&nbsp;{{ session.username }}</a>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="user" style="padding: 10px;">
+                            <h5 class="text-center">Current tasks</h5>
+                            <span style="width: 100%;width: 100%; font-size: 13px; font-weight: 400;" class="badge badge-info">{{ nb_tasks_pr[0] }} task{% if nb_tasks_pr[0] > 1 %}s{% endif %} in total</span><br />
+                            <span style="width: 100%;width: 100%; font-size: 13px; font-weight: 400;" class="badge badge-danger">{{ nb_tasks_pr[1] }} task{% if nb_tasks_pr[1] > 1 %}s{% endif %} waiting</span><br />
+                            <span style="width: 100%;width: 100%; font-size: 13px; font-weight: 400;" class="badge badge-warning">{{ nb_tasks_pr[3] }} task{% if nb_tasks_pr[3] > 1 %}s{% endif %} in progress</span><br />
+                            <span style="width: 100%;width: 100%; font-size: 13px; font-weight: 400;" class="badge badge-success">{{ nb_tasks_pr[2] }} completed task{% if nb_tasks_pr[2] > 1 %}s{% endif %}</span><br />
+                            <div class="dropdown-divider"></div>
+                            <a href="{{ url_for('route_user_info') }}" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;"><i class="fas fa-eye"></i>&nbsp;View my profile</a>
+                            <form id="logout-form" action="{{ url_for('route_signout') }}" method="post">
+                                <button type="submit" class="btn btn-danger" style="width: 100%;"><i class="fas fa-times"></i>&nbsp;Log Out</button>
+                            </form>
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <footer class="py-5 bg-dark">
+        <div class="container">
+            <p class="m-0 text-center text-white">Copyright &copy; EPyTodo 2019</p>
+            <p class="m-0 text-center text-white"><small>Epitech promotion 2023<br />BONNET Valentin, GOIFFON Lucas, LEPLANQUOIS Manon</small></p>
+        </div>
+    </footer>
+
+    <!-- REGISTER MODAL -->
+    <div class="modal fade" id="modal-register" tabindex="-1" role="dialog" aria-labelledby="modal_register_label">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Register</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ url_for('route_register') }}" method="POST">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="sr-only" for="username">Username</label>
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text"><i class="fas fa-at"></i></div>
+                                </div>
+                                <input type="text" required autofocus autocomplete="off" name="username" class="form-control" placeholder="Username">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="sr-only" for="password">Password</label>
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text"><i class="fas fa-lock"></i></div>
+                                </div>
+                                <input type="password" required name="password" class="form-control" placeholder="Password">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="sr-only" for="password-confirm">Password</label>
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text"><i class="fas fa-lock"></i></div>
+                                </div>
+                                <input type="password" required name="password-confirm" class="form-control" placeholder="Confirm your password">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="sr-only" for="email">Email</label>
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text"><i class="fas fa-envelope"></i></div>
+                                </div>
+                                <input type="email" required name="email" class="form-control" placeholder="Email">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success" style="left: 15px; position: absolute;"><i class="fa fa-plus"></i>&nbsp;Register</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN MODAL -->
+    <div class="modal fade" id="modal-login" tabindex="-1" role="dialog" aria-labelledby="modal_login_label">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Login</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ url_for('route_signin') }}" method="POST">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="sr-only" for="username">Username</label>
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text"><i class="fas fa-at"></i></div>
+                                </div>
+                                <input type="text" required autofocus name="username" class="form-control" placeholder="Username">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="sr-only" for="password">Password</label>
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text"><i class="fas fa-lock"></i></div>
+                                </div>
+                                <input type="password" required name="password" class="form-control" placeholder="Password">
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <small><a href="#">You forgot your password ? Reset now !</a></small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success" style="left: 15px; position: absolute;"><i class="fas fa-check"></i>&nbsp;Login</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js')|autoversion }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.min.js"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.min.js')|autoversion }}"></script>
+    <script src="https://unpkg.com/popper.js"></script>
+
+    <!-- Plugin JavaScript -->
+    <script src="{{ url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js')|autoversion }}"></script>
+
+    <!-- Custom JavaScript for this theme -->
+    <script src="{{ url_for('static', filename='js/scrolling-nav.js')|autoversion }}"></script>
+    <script src="{{ url_for('static', filename='vendor/clockpicker/dist/bootstrap-clockpicker.js')|autoversion }}"></script>
+
+    <!-- DataTable -->
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js"></script>
+
+    {% if nb_tasks_late > 0 %}
+    <script type="text/JavaScript">
+        $(document).ready(function () {
+            setInterval(function () {
+                if ($.isNumeric($("#alert-tasks-late").text())) {
+                    $("#alert-tasks-late").html('<i class="fas fa-exclamation-triangle"></i>');
+                } else {
+                    $("#alert-tasks-late").html($("#alert-tasks-late").attr("nbtasks"));
+                }
+            }, 3000);
+        });
+    </script>
+    {% endif %}
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

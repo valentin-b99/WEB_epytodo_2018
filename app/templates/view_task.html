@@ -1,0 +1,267 @@
+{% extends "header.html" %}
+{% set page_title = task[1] %}
+
+{% block content %}
+<header class="bg-profile-tasks text-white">
+    <div class="container text-center">
+        <h1>{{ page_title }}</h1>
+    </div>
+</header>
+
+<section id="services" class="bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                {% include 'flash.html' %}
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <b style="text-transform: uppercase;">Informations of {{ task[1] }}</b>
+                            </div>
+                            <div class="panel-footer">
+                                <div class="form-group">
+                                    <div class="input-group mb-2">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text"><i class="fas fa-hashtag"></i></div>
+                                        </div>
+                                        <input type="text" class="form-control" value="{{ task[0] }}" readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group mb-2">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text"><i class="fas fa-at"></i></div>
+                                        </div>
+                                        <input type="text" class="form-control" value="{{ task[1] }}" readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group mb-2">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text"><i class="fas fa-calendar-check"></i></div>
+                                        </div>
+                                        <input type="text" class="form-control" value="{{ task[2] }}" readonly="readonly">
+                                        {% if task[6] %}
+                                        <div class="input-group-append">
+                                            <div class="input-group-text" style="background: #28a745; color: #fff; font-weight: 600;">Started</div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group mb-2">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text"><i class="fas fa-calendar-times"></i></div>
+                                        </div>
+                                        <input type="text" class="form-control" value="{{ task[3] }}" readonly="readonly">
+                                        {% if task[6] and not task[7] %}
+                                        <div class="input-group-append">
+                                            <div class="input-group-text" style="{% if task[8] < 3 %}background: #ffc107;font-weight: 600;{% else %}background: #17a2b8; font-weight: 600; color: #fff;{% endif %}">{{ task[8] }} day{% if task[8] > 1 %}s{% endif %} remaining</div>
+                                        </div>
+                                        {% elif task[7] %}
+                                        <div class="input-group-append">
+                                            <div class="input-group-text" style="background: #dc3545; font-weight: 600; color: #fff;">Finished</div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group mb-2">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text"><i class="fas fa-spinner"></i></div>
+                                        </div>
+                                        {% if "not started" in task[4] %}
+                                        <input type="text" class="form-control" value="Waiting" readonly="readonly">
+                                        <div class="input-group-append">
+                                            <div class="input-group-text" style="color: #dc3545; font-size: 23px;"><i class="fas fa-times-circle"></i></div>
+                                        </div>
+                                        {% elif "in progress" in task[4] %}
+                                        <input type="text" class="form-control" value="In progress" readonly="readonly">
+                                        <div class="input-group-append">
+                                            <div class="input-group-text" style="color: #ff8d00; font-size: 23px;"><i class="fas fa-spinner"></i></div>
+                                        </div>
+                                        {% else %}
+                                        <input type="text" class="form-control" value="Completed" readonly="readonly">
+                                        <div class="input-group-append">
+                                            <div class="input-group-text" style="color: #28a745; font-size: 23px;"><i class="fas fa-check-circle"></i></div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group mb-2">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text"><i class="fas fa-eye"></i></div>
+                                        </div>
+                                        <input type="text" class="form-control" value="{% if not task[5] %}Public{% else %}Private{% endif %}" readonly="readonly">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <b style="text-transform: uppercase;">Actions</b>
+                            </div>
+                            <div class="panel-footer">
+                                {% if "not started" in task[4] %}
+                                <a href="{{ url_for('route_edit_task', task_id=task[0]) }}" onclick="event.preventDefault(); document.getElementById('hidden-form').submit();" data-toggle="tooltip" data-placement="top" class="btn btn-warning w-100 mb-2"><i class="fas fa-spinner"></i>&nbsp;Task now in progress</a>
+                                {% elif "in progress" in task[4] %}
+                                <a href="{{ url_for('route_edit_task', task_id=task[0]) }}" onclick="event.preventDefault(); document.getElementById('hidden-form').submit();" data-toggle="tooltip" data-placement="top" class="btn btn-success w-100 mb-2"><i class="fas fa-check"></i>&nbsp;Task now completed</a>
+                                {% endif %}
+                                <button type="button" class="btn btn-info w-100 mb-2" data-toggle="modal" data-target="#modal-edit-task"><span class="fa fa-pencil-alt" aria-hidden="true"></span>&nbsp;Edit</button>
+                                <form id="delete-task-form-{{ task[0] }}" action="{{ url_for('route_delete_task', task_id=task[0]) }}" method="post">
+                                    <button type="submit" class="btn btn-danger w-100" role="button" aria-pressed="true"><i class="fa fa-trash"></i>&nbsp;Delete</a>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- EDIT TASK MODAL -->
+<div class="modal fade task" id="modal-edit-task" tabindex="-1" role="dialog" aria-labelledby="modal_edit_task_label">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Edit task {{ task[1] }}</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ url_for('route_edit_task', task_id=task[0]) }}" method="POST">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="sr-only" for="title">Task name</label>
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text"><i class="fas fa-pencil-alt"></i></div>
+                            </div>
+                            <input type="text" required autofocus name="title" class="form-control" placeholder="Task name" value="{{ task[1] }}">
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="input-group date datepicker-begin-i" date-provide="datepicker-begin">
+                                    <input type="text" name="date-begin" autocomplete="off" placeholder="Begin date" class="form-control datepicker-begin" readonly="readonly" style="cursor: pointer;" value="{{ task[9] }}" />
+                                    <div class="input-group-append input-group-addon">
+                                        <span class="input-group-text" style="cursor: pointer;">
+                                            <i class="fa fa-calendar"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group date clockpicker-begin-i" date-provide="clockpicker-begin">
+                                    <input type="text" name="clock-begin" autocomplete="off" placeholder="Begin hour" class="form-control clockpicker-begin" readonly="readonly" style="cursor: pointer;" value="{{ task[10] }}" />
+                                    <div class="input-group-append input-group-addon">
+                                        <span class="input-group-text" style="cursor: pointer;">
+                                            <i class="fa fa-clock"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="input-group date" date-provide="datepicker-end" id="datepicker-end-i">
+                                    <input type="text" name="date-end" autocomplete="off" placeholder="End date" class="form-control" id="datepicker-end" readonly="readonly" style="cursor: pointer;" value="{{ task[11] }}" />
+                                    <div class="input-group-append input-group-addon">
+                                        <span class="input-group-text" style="cursor: pointer;">
+                                            <i class="fa fa-calendar"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                    <div class="input-group date clockpicker-end-i" date-provide="clockpicker-end">
+                                        <input type="text" name="clock-end" autocomplete="off" placeholder="End hour" class="form-control clockpicker-end" readonly="readonly" style="cursor: pointer;" value="{{ task[12] }}" />
+                                        <div class="input-group-append input-group-addon">
+                                            <span class="input-group-text" style="cursor: pointer;">
+                                                <i class="fa fa-clock"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="form-group">
+                        <label><b>Status :</b></label>
+                        <div class="form-check" style="padding-left: 0; text-align: center;">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-check-label radio-inline" for="wait-status">
+                                        <input class="form-check-input" type="radio" name="status" id="wait-status" value="not started" {% if 'not started' in task[4] %}checked{% endif %}>
+                                            <span class="badge badge-danger">Waiting</span>
+                                        </input>
+                                    </label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-check-label radio-inline" for="progress-status">
+                                        <input class="form-check-input" type="radio" name="status" id="progress-status" value="in progress" {% if 'in progress' in task[4] %}checked{% endif %}>
+                                            <span class="badge badge-warning">In progress</span>
+                                        </input>
+                                    </label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-check-label radio-inline" for="done-status">
+                                        <input class="form-check-input" type="radio" name="status" id="done-status" value="done" {% if 'done' in task[4] %}checked{% endif %}>
+                                            <span class="badge badge-success">Completed</span>
+                                        </input>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="form-group">
+                        <label><b>Visibility :</b></label>
+                        <div class="form-check">
+                            <label class="form-check-label checkbox-inline" for="private-status">
+                                {% if task[5] %}
+                                <input class="form-check-input private-status" type="checkbox" name="private-status" id="private-status" checked>
+                                    <span class="badge badge-danger">Private</span>
+                                </input>
+                                {% else %}
+                                <input class="form-check-input private-status" type="checkbox" name="private-status" id="private-status">
+                                    <span class="badge badge-success">Public</span>
+                                </input>
+                                {% endif %}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success" style="left: 15px; position: absolute;"><i class="fas fa-pencil-alt"></i>&nbsp;Edit</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<form action="{{ url_for('route_edit_task', task_id=task[0]) }}" id="hidden-form" method="POST" style="display: none;">
+    <input type="text" name="title" value="{{ task[1] }}" />
+    <input type="text" name="date-begin" value="{{ task[9] }}" />
+    <input type="text" name="clock-begin" value="{{ task[10] }}" />
+    <input type="text" name="date-end" value="{{ task[11] }}" />
+    <input type="text" name="clock-end" value="{{ task[12] }}" />
+    <input type="radio" name="status" value="in progress" {% if 'not started' in task[4] %}checked{% endif %}>
+    <input type="radio" name="status" value="done" {% if 'in progress' in task[4] %}checked{% endif %}>
+    <input type="checkbox" name="private-status" {% if task[5] %}checked{% endif %}>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/task.js')|autoversion }}"></script>
+{% endblock %}

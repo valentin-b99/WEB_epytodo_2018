@@ -1,0 +1,109 @@
+{% extends "header.html" %}
+{% set page_title = "Home" %}
+
+{% block content %}
+<header class="bg-home text-white">
+    <div class="container text-center">
+        <h1>{{ page_title }}</h1>
+    </div>
+</header>
+
+<section id="services" class="bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                {% include 'flash.html' %}
+                <h2>Tasks timeline</h2>
+                <div id="timeline-container">Loading timeline...</div>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+function date(day, month, year, hour, minute)
+{
+    return new Date(year, month - 1, day, hour, minute);
+}
+var today = new Date();
+var now = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+var tasks_tab = [['📌', 'Now', 'opacity: 1;', now, now]];
+</script>
+{% for task in tasks_list %}
+<script>
+var start_date = ['{{ task[2][0] }}', '{{ task[2][1] }}', '{{ task[2][2] }}', '{{ task[2][3] }}', '{{ task[2][4] }}'];
+var end_date = ['{{ task[3][0] }}', '{{ task[3][1] }}', '{{ task[3][2] }}', '{{ task[3][3] }}', '{{ task[3][4] }}'];
+if ('{{ task[4] }}' == 'not started')
+    var task = ['⌛ Task waiting', '{{ task[1] }} | {{ task[5] }}', 'opacity: 1;' , date(start_date[0], start_date[1], start_date[2], start_date[3], start_date[4]), date(end_date[0], end_date[1], end_date[2], end_date[3], end_date[4])];
+else
+    var task = ['✍ Task in progress', '{{ task[1] }} | {{ task[5] }}', 'opacity: 1;' , date(start_date[0], start_date[1], start_date[2], start_date[3], start_date[4]), date(end_date[0], end_date[1], end_date[2], end_date[3], end_date[4])];tasks_tab.push(task);
+</script>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+<script type="text/javascript">
+    google.charts.load("current", {packages:["timeline"]});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+        var container = document.getElementById('timeline-container');
+        var chart = new google.visualization.Timeline(container);
+        var dataTable = new google.visualization.DataTable();
+        dataTable.addColumn({ type: 'string', id: 'Status' });
+        dataTable.addColumn({ type: 'string', id: 'Task' });
+        dataTable.addColumn({ type: 'string', role: 'style' });
+        dataTable.addColumn({ type: 'date', id: 'Start' });
+        dataTable.addColumn({ type: 'date', id: 'End' });
+        dataTable.addRows(tasks_tab);
+
+        chart.draw(dataTable, {
+            avoidOverlappingGridLines: false,
+            tooltip: {
+                isHtml: true
+            }
+        });
+
+        nowLine('timeline-container');
+        $("#timeline-container").css("height", $("#timeline-container > div > div > div > div").height() + "px");
+
+        google.visualization.events.addListener(chart, 'onmouseover', function(obj){
+            if(obj.row == 0){
+            $('.google-visualization-tooltip').css('display', 'none');
+            }
+            nowLine('timeline-container');
+        })
+
+        google.visualization.events.addListener(chart, 'onmouseout', function(obj){
+            nowLine('timeline-container');
+        })
+    }
+
+    function nowLine(div) {
+
+        //get the height of the timeline div
+        var height;
+        $('#' + div + ' rect').each(function(index) {
+            var x = parseFloat($(this).attr('x'));
+            var y = parseFloat($(this).attr('y'));
+
+            if (x == 0 && y == 0) {
+                height = parseFloat($(this).attr('height'))
+            }
+        })
+
+        var nowWord = $('#' + div + ' text:contains("Now")');
+
+        nowWord.prev().first().attr('height', height + 'px').attr('width', '1px').attr('y', '0');
+        // add this line to remove the display:none style on the vertical line
+        $('#' + div + '  text:contains("Now")').each(function(idx, value) {
+            if (idx == 0) {
+                $(value).parent().find("rect").first().removeAttr("style");
+            } else if (idx == 1) {
+                $(value).parent().find("rect").first().attr("style", "display:none;");
+            }
+        });
+    }
+</script>
+{% endblock %}
